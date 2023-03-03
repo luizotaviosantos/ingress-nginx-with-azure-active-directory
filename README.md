@@ -20,9 +20,8 @@ In the Redirect URI section create a new Web platform entry for each app that yo
 <h3>
 Next we need to add group read permissions for the app registration, on the API Permissions page of the app, click on Add a permission, select Microsoft Graph, then select Application permissions, then click on Group and select Group.Read.All. Hit Add permissions and then on Grant admin consent (you might need an admin to do this).<h3>
 
-![3 permissoes](https://user-images.githubusercontent.com/95440965/222792539-accc7e81-f32b-40d3-8001-9c37a7bb708e.gif)
 
-
+![3 permissoes](https://user-images.githubusercontent.com/95440965/222809833-dd56efca-1d1c-4efc-b5de-69a2fe9fb528.gif)
 
   
   # Generating Cookie Secret
