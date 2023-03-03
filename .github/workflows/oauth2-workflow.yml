@@ -1,0 +1,108 @@
+# This is a basic workflow that is manually triggered
+
+name: oauth2-proxy workflow
+
+# Controls when the action will run. Workflow runs when manually triggered using the UI
+# or API.
+on:
+  workflow_dispatch:
+    # Inputs the workflow accepts.
+    inputs:
+      name:
+        # Friendly description to be shown in the UI instead of 'name'
+        description: 'Name of deploy:'
+        # Default value if no value is explicitly provided
+        default: 'Ex. oauth2-azure-ad-deploy'
+        # Input has to be provided for the workflow to run
+        required: true
+
+      domain:
+        # Friendly description to be shown in the UI instead of 'name'
+        description: 'What is the domain?:'
+        # Default value if no value is explicitly provided
+        default: 'Ex. domain.com.br'
+        # Input has to be provided for the workflow to run
+        required: true
+
+      tenant-id:
+        # Friendly description to be shown in the UI instead of 'name'
+        description: 'What is the Tenant ID'
+        # Default value if no value is explicitly provided
+        default: 'Ex. 5d23026c-a993-1668-85b2-6f5b3126c537'
+        # Input has to be provided for the workflow to run
+        required: true
+
+      client-id:
+        # Friendly description to be shown in the UI instead of 'name'
+        description: 'What is the client ID?'
+        # Default value if no value is explicitly provided
+        default: 'Ex. 123c30f4-1f02-2e4a-b2ef-c170f2b7c247'
+        # Input has to be provided for the workflow to run
+        required: true
+
+      client-secret:
+        # Friendly description to be shown in the UI instead of 'name'
+        description: 'What is the client secret?:'
+        # Default value if no value is explicitly provided
+        default: 'Ex. ~js8G~4IJ.Zi.xFzCD_H52-F24_7Zj9JPTONPdsY'
+        # Input has to be provided for the workflow to run
+        required: true
+      
+      cookie-secret:
+        # Friendly description to be shown in the UI instead of 'name'
+        description: 'What is the cookie secret?:'
+        # Default value if no value is explicitly provided
+        default: 'Ex. ZxBlOnI2TXsFKCN6UiwFUHZoazSkdXpGLPzxVDdJH5Y='
+        # Input has to be provided for the workflow to run
+        required: true
+
+      # namespace:
+      #   # Friendly description to be shown in the UI instead of 'name'
+      #   description: 'Informe o namespace inicial:'
+      #   # Default value if no value is explicitly provided
+      #   default: 'default'
+      #   # Input has to be provided for the workflow to run
+      #   required: true
+
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  # This workflow contains a single job called "greet"
+  Generating-files:
+    # The type of runner that the job will run on
+    runs-on: ubuntu-latest
+    # Steps represent a sequence of tasks that will be executed as part of the job
+    permissions:
+      contents: write
+    steps:
+    # Runs a single command using the runners shell
+    - name: Checkout
+      uses: actions/checkout@v3
+    - name: Generating oauth2-proxy.yaml
+      run: |
+        sed -i "s/<tenant-id>/${{ github.event.inputs.tenant-id }}/g" oauth2-proxy.yml
+        sed -i "s/<client-id>/${{ github.event.inputs.client-id }}/g" oauth2-proxy.yml
+        sed -i "s/<cookie-secret/${{ github.event.inputs.cookie-secret }}/g" oauth2-proxy.yml
+        sed -i "s/<client-secret/${{ github.event.inputs.client-secret }}/g" oauth2-proxy.yml        
+        sed -i "s/<domain>/${{ github.event.inputs.domain }}/g" oauth2-proxy.yml        
+
+    - name: Creating zip file
+      uses: TheDoctor0/zip-release@0.6.2
+      with:
+        type: 'zip'
+        filename: '${{ github.event.inputs.name }}.zip'
+        exclusions: '*.git* /*node_modules/* .editorconfig'
+    
+    - name: Upload zip file
+      uses: ncipollo/release-action@v1
+      id: release_push
+      with:
+        artifacts: "${{ github.event.inputs.name }}.zip"
+        tag:  ${{ github.run_id }}
+        name: "Deploy files"
+        body: "Deploy ${{ github.event.inputs.name }} generated"
+
+    - name: Release URL
+      run: |
+        echo ""
+        echo "${{ steps.release_push.outputs.html_url }}"

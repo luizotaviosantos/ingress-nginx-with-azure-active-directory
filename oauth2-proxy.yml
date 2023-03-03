@@ -1,0 +1,110 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    k8s-app: oauth2-proxy
+  name: oauth2-proxy
+#  namespace: oauth2
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      k8s-app: oauth2-proxy
+  template:
+    metadata:
+      labels:
+        k8s-app: oauth2-proxy
+    spec:
+      containers:
+      - args:
+        - --provider=oidc
+        - --email-domain=*
+        - --upstream=file:///dev/null
+        - --http-address=0.0.0.0:4180
+        - --oidc-issuer-url=https://login.microsoftonline.com/<tenant-id>/v2.0  # TENANT ID
+        - --cookie-secure=true
+        - --cookie-domain=<domain> # DOMAIN
+        - --cookie-secret=<cookie-secret> # COOKIE SECRET
+        - --user-id-claim=oid
+        - --reverse-proxy=true
+        - --skip-provider-button=true
+        - --client-id=<client-id> # CLIENT ID
+        - --client-secret=<client-secret> # CLIENT SECRET
+        - --session-store-type=redis
+        - --redis-connection-url=redis://redis:6379        
+        image: quay.io/oauth2-proxy/oauth2-proxy:latest
+        imagePullPolicy: Always
+        name: oauth2-proxy
+        ports:
+        - containerPort: 4180
+          protocol: TCP
+        resources:
+          requests:
+            memory: "30Mi"
+            cpu: "20m"
+          limits:
+            memory: "100Mi"
+            cpu: "50m"          
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    k8s-app: oauth2-proxy
+  name: oauth2-proxy
+#  namespace: oauth2
+spec:
+  ports:
+  - name: http
+    port: 4180
+    protocol: TCP
+    targetPort: 4180
+  selector:
+    k8s-app: oauth2-proxy
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis
+#  namespace: oauth2
+spec:
+  selector:
+    matchLabels:
+      app: redis
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: redis
+    spec:
+      containers:
+        - name: redis
+          image: redis:alpine
+          ports:
+            - containerPort: 6379
+          resources:
+            requests:
+              memory: "20Mi"
+              cpu: "10m"
+            limits:
+              memory: "60Mi"
+              cpu: "40m"            
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis
+#  namespace: oauth2
+spec:
+  selector:
+    app: redis
+  ports:
+    - protocol: TCP
+      port: 6379
+  type: ClusterIP
