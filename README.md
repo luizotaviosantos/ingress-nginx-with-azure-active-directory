@@ -47,7 +47,7 @@ python -c 'import os,base64; print(base64.urlsafe_b64encode(os.urandom(32)).deco
 <h3>
 After that you will have the infos we need: 
 
-Tenant ID, Client ID, , Client Secret, Cookie Secret and Domain.
+Tenant ID, Client ID, Client Secret, Cookie Secret and Domain.
 
 
 With this information, you can trigger the workflow on the repository, and it will generate the YAML file for deploying oauth2-proxy.
